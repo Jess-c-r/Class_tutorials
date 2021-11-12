@@ -23,10 +23,13 @@ If you're up for a challenge you can also write code which loads all the data in
 
 ```{r}
 #loading data
-
+aud <- read_bulk('/Users/jessica/Desktop/Uni/Perception and Action/Class_tutorials/Audition')
+vis <- read_bulk('/Users/jessica/Desktop/Uni/Perception and Action/Class_tutorials/Vision')
 ```
 
 Before you start looking at the data, discuss what predictions you have and why. 
+
+-> When the tone and the circle are congruent, RT will be faster (for either experiment)
 
 # Investigate the data
 Each row is one trial. RT is measured in milliseconds.
@@ -35,8 +38,8 @@ What variables do we have? Which ones are we interested in? Do we need to change
 
 ```{r}
 # get a glimpse of the data
-glimpse(data_audition)
-glimpse(data_vision)
+glimpse(aud)
+glimpse(vis)
 
 
 ```
@@ -49,7 +52,35 @@ Interpret the findings. Do they match your predictions? Why? Why not?
 ########################## PLOTTING TIME ##################################
 
 # write your code here
+vis <-  vis %>% filter(accuracy != "false")
+aud <- aud %>% filter(accuracy != "false")
 
+vis %>% 
+  ggplot(aes(congruency, rt)) +
+  geom_boxplot()
+
+vis %>% ggplot(aes(congruency, rt)) +
+  stat_summary(fun = "mean", geom = "point") +
+ stat_summary(fun.data = "mean_se", geom = "errorbar")
+
+
+vis %>% 
+  ggplot() +
+  aes(x = congruency, y = rt, color = congruency) +
+  stat_summary(fun = "mean", geom = "point", size = 3) +
+  stat_summary(fun = 'mean', geom = 'line', color = 'gray55', aes(group = 1)) +
+  stat_summary(fun.data = "mean_se", geom = "errorbar", width = .1) +
+  theme(legend.position = 'None') +
+  labs(title = 'Mean RT of vision with SE errorbars')
+
+
+vis %>% 
+   group_by(subject, congruency) %>% 
+   summarize(mean_rt = mean(rt)) %>%
+  ggplot() + 
+  aes(x=congruency, y=mean_rt, color=subject) + 
+  geom_point() + 
+  geom_line(aes(group=subject))
 ```
 
 # CHALLENGE LEVEL 1 - Modelling time

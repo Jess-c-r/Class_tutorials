@@ -1,0 +1,93 @@
+---
+title: "Mousetracking analysis"
+author: "Jessica"
+date: "10/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mousetrap)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+df <- read.csv("subject-3.csv")
+```
+
+
+#1. Turn the raw data into a mousetrap object. Now take a moment to look at the structure that it created. What are the elements, what information does it provide?
+
+```{r}
+mouse <- mt_import_mousetrap(df)
+```
+A list where we can see the different variables, what type they are (character, factor, integer etc) and what they contain.
+
+#2. Make a plot. Try to understand what the lines mean and how to “read” the graph. What seems weird about it when you think about how the experiment task looked like?
+
+```{r}
+mt_plot(mouse)
+```
+The lines is the course of the mouse path. The "clicks" must be where the lines terminate. It seems as though the plot is upside down compared to the experiment design. This is what Fabio also told us in the Eyetracking workshop, that we have to invert the plots.
+
+#3. The demo-experiment had different trial types for which we have different predictions. Make a plot that distinguishes these two conditions, e.g. by different colors.
+
+```{r}
+mt_plot(mouse, color = "trial_type")
+```
+
+
+#4. Find a function that does a mirror-symmetric mapping of all the movements from the right side to the left side so that all movements overlap. Plot again. What did this function also do? If you’ve done everything correctly, it should look like this:
+
+```{r}
+sym_mouse <- mt_remap_symmetric(mouse)
+mt_plot(sym_mouse, color = "trial_type")
+```
+The plot was also inverted/turned upside down so that it's now the right way
+
+#5. The standard plotting function shows x and y coordinates. Modify it so you plot timestamps by xpos. What do you see? What is this line in the beginning?
+
+```{r}
+mt_plot(mouse, color = "trial_type", x = "timestamps", y = "xpos")
+```
+X is the time and since we can only see the x-position, we can't see how they moved their mouse on the y-axis (up/down) but only stide to side. The line is where the mouse is not used, probably because it's the beginning of the trial so the participant is just starting to perceive and think about the trial.
+
+#6. Find a function to remove this “line” and plot again. If you now plotted x and y coordinates again, what would have changed in the plot? Think first, then try it!
+--> Please call Sigrid over for a brief check-in!
+
+```{r}
+mouse_excl <- mt_exclude_initiation(mouse)
+
+mt_plot(mouse_excl, color = "trial_type", x = "timestamps", y = "xpos")
+```
+The data is moved to the 0-point (before, the line started at 0 but the data started at 150-ish. Now it's been moved back)
+
+#7. Apply the function “mt_time_normalize”. Now look at your data variable (the mt object) where a new matrix appeared. What do you notice? What does the function do? After you have thought about it yourself, check the documentation.
+
+```{r}
+norm_mouse <- mt_time_normalize(mouse_excl, nsteps = "10")
+```
+The dataframe is now a list of 3 instead of 2, so there's been added "tn_trajectories"
+
+
+#8. Find out how to plot the normalized trajectories instead of the raw data.
+
+```{r}
+mt_plot(norm_mouse, color = "trial_type", x = "timestamps", y = "xpos", use = "tn_trajectories")
+```
+It's difficult to see a difference when we're only looking at one participant; if we had a larger dataframe, it would be easier to see.
+
+#9. Take a moment to play around with different numbers of steps in “mt_time_normalize” and see how that changes the shape of the trajectories, esp. when using very small numbers. Discuss what the decision about normalizing implies for the data analysis and interpretation. In the end, set the steps back to the default of 101.
+
+#10. Now we want to visualize our “findings”. Find a function that will plot averages of all the “similar” movements and all the “dissimilar” movements.Think: Which trajectories do we need to use, the original or the time normalized? Why? Try plotting both to see whether you were right.
+
+#11. Apply the function “mt_measures” and look at the outcome in your data variable.
+
+#12. Now find a function that helps you aggregate some measures of your pleasing over the two trial_types. It’ll look e.g. like this:
+
+#13. Take a moment to think what these “results” could mean if this was a proper experiment and didn’t just have the experimenter herself run it once ;-) How would you interpret this? Does this match your hypothesis? Especially look at the MAD (maximum absolute deviation from the direct path), the AUC (area under the curve) and the reaction time.
